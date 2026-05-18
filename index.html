@@ -5,21 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Status Board</title>
   <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --dark: #111827;
+      --soft: #f9fafb;
+      --accent: #3730a3;
+      --accent-bg: #eef2ff;
+      --done: #166534;
+      --done-bg: #dcfce7;
+      --error: #b91c1c;
+      --error-bg: #fee2e2;
+      --error-line: #fecaca;
+      --ok: #166534;
+      --ok-bg: #dcfce7;
+      --admin-bg: #fef3c7;
+      --admin-text: #92400e;
+    }
+
+    * { box-sizing: border-box; }
+
     body {
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f6f7fb;
-      color: #111827;
+      background: var(--bg);
+      color: var(--text);
     }
 
     header {
-      background: #111827;
+      background: var(--dark);
       color: white;
       padding: 28px 18px;
     }
 
-    .wrap,
-    main {
+    .wrap, main {
       max-width: 1100px;
       margin: 0 auto;
     }
@@ -31,11 +53,148 @@
     h1 {
       margin: 0 0 6px;
       font-size: 30px;
+      letter-spacing: -0.02em;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 20px;
+    }
+
+    h3 {
+      margin: 0 0 10px;
+      font-size: 17px;
     }
 
     .subtitle {
       margin: 0;
       color: #d1d5db;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+    }
+
+    .unlock-card {
+      max-width: 650px;
+      margin: 34px auto 0;
+      text-align: center;
+      padding: 28px;
+    }
+
+    .pattern-grid {
+      width: 280px;
+      height: 280px;
+      margin: 22px auto 12px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+      touch-action: none;
+      user-select: none;
+    }
+
+    .dot {
+      border: 2px solid #374151;
+      background: #111827;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .dot::after {
+      content: "";
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: #9ca3af;
+      display: block;
+    }
+
+    .dot.active {
+      border-color: #818cf8;
+      box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.16);
+    }
+
+    .dot.active::after {
+      background: #c7d2fe;
+    }
+
+    .muted, .label {
+      color: var(--muted);
+    }
+
+    .small {
+      font-size: 13px;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+      justify-content: center;
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 650;
+      cursor: pointer;
+      background: #111827;
+      color: white;
+    }
+
+    button.secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    button.danger {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    textarea, select {
+      width: 100%;
+      padding: 12px 13px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      font: inherit;
+      outline: none;
+      background: white;
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    label {
+      display: block;
+      font-weight: 650;
+      margin-bottom: 8px;
+      text-align: left;
     }
 
     .grid {
@@ -45,32 +204,14 @@
       margin-bottom: 18px;
     }
 
-    .card {
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 16px;
-      padding: 16px;
-      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
-    }
-
     .metric {
       font-size: 28px;
       font-weight: 750;
       margin-top: 6px;
     }
 
-    .label,
-    .muted {
-      color: #6b7280;
-    }
-
     section {
       margin-top: 18px;
-    }
-
-    h2 {
-      margin: 0 0 12px;
-      font-size: 20px;
     }
 
     table {
@@ -78,18 +219,18 @@
       border-collapse: collapse;
     }
 
-    th,
-    td {
+    th, td {
       text-align: left;
       padding: 11px 10px;
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid var(--line);
       vertical-align: top;
     }
 
     th {
       font-size: 13px;
-      color: #6b7280;
-      background: #f9fafb;
+      color: var(--muted);
+      background: var(--soft);
+      font-weight: 650;
     }
 
     .pill {
@@ -97,34 +238,72 @@
       padding: 4px 9px;
       border-radius: 999px;
       font-size: 12px;
-      background: #eef2ff;
-      color: #3730a3;
+      background: var(--accent-bg);
+      color: var(--accent);
       white-space: nowrap;
     }
 
     .done {
-      background: #dcfce7;
-      color: #166534;
+      background: var(--done-bg);
+      color: var(--done);
+    }
+
+    .admin {
+      background: var(--admin-bg);
+      color: var(--admin-text);
     }
 
     .error {
-      color: #b91c1c;
-      background: #fee2e2;
-      border: 1px solid #fecaca;
+      color: var(--error);
+      background: var(--error-bg);
+      border: 1px solid var(--error-line);
       padding: 12px;
       border-radius: 12px;
+      margin-top: 14px;
+      text-align: left;
+    }
+
+    .success {
+      color: var(--ok);
+      background: var(--ok-bg);
+      border: 1px solid #bbf7d0;
+      padding: 12px;
+      border-radius: 12px;
+      margin-top: 14px;
+      text-align: left;
     }
 
     .footer {
       text-align: center;
       margin-top: 22px;
       font-size: 13px;
-      color: #6b7280;
+      color: var(--muted);
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #0b1020;
+      color: #e5e7eb;
+      padding: 14px;
+      border-radius: 12px;
+      overflow: auto;
+      max-height: 420px;
+      text-align: left;
+    }
+
+    .hidden {
+      display: none !important;
     }
 
     @media (max-width: 850px) {
       .grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .top-row {
+        align-items: flex-start;
+        flex-direction: column;
       }
 
       table {
@@ -142,6 +321,12 @@
       h1 {
         font-size: 25px;
       }
+
+      .pattern-grid {
+        width: 240px;
+        height: 240px;
+        gap: 18px;
+      }
     }
   </style>
 </head>
@@ -154,12 +339,146 @@
   </header>
 
   <main>
-    <div id="status" class="card">Loading...</div>
-    <div id="app" style="display:none"></div>
+    <div id="unlockScreen" class="card unlock-card">
+      <h2>Field Log</h2>
+      <p class="muted">Draw unlock pattern to continue.</p>
+
+      <div id="patternGrid" class="pattern-grid">
+        <div class="dot" data-value="1"></div>
+        <div class="dot" data-value="2"></div>
+        <div class="dot" data-value="3"></div>
+        <div class="dot" data-value="4"></div>
+        <div class="dot" data-value="5"></div>
+        <div class="dot" data-value="6"></div>
+        <div class="dot" data-value="7"></div>
+        <div class="dot" data-value="8"></div>
+        <div class="dot" data-value="9"></div>
+      </div>
+
+      <p id="patternStatus" class="muted">Ready.</p>
+
+      <div class="button-row">
+        <button id="resetPatternButton" class="secondary">Reset</button>
+      </div>
+
+      <div id="unlockMessage"></div>
+    </div>
+
+    <div id="dashboardScreen" class="hidden">
+      <div class="top-row">
+        <div>
+          <span id="viewBadge" class="pill">view</span>
+          <span id="servedAt" class="muted"></span>
+        </div>
+
+        <div class="button-row" style="margin-top:0">
+          <button id="refreshButton" class="secondary">Refresh</button>
+          <button id="downloadButton" class="secondary hidden">Download JSON</button>
+          <button id="rawButton" class="secondary hidden">Show raw data</button>
+          <button id="lockButton" class="danger">Lock</button>
+        </div>
+      </div>
+
+      <div id="content"></div>
+
+      <section id="adminPanel" class="card hidden">
+        <h2>Admin Actions</h2>
+
+        <div class="grid" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+          <button data-quick-command="approve_proposal">Approve proposal</button>
+          <button data-quick-command="reject_proposal" class="danger">Reject proposal</button>
+          <button data-quick-command="refresh_snapshot" class="secondary">Refresh snapshot</button>
+        </div>
+
+        <section>
+          <h3>Send instruction</h3>
+
+          <label for="commandType">Command type</label>
+          <select id="commandType">
+            <option value="agent_instruction">Agent instruction</option>
+            <option value="request_changes">Request changes</option>
+            <option value="approve_proposal">Approve proposal</option>
+            <option value="reject_proposal">Reject proposal</option>
+            <option value="refresh_snapshot">Refresh snapshot</option>
+          </select>
+
+          <div style="height:12px"></div>
+
+          <label for="commandText">Instruction text</label>
+          <textarea id="commandText" placeholder="Write what you want the agent to consider or do."></textarea>
+
+          <div class="button-row">
+            <button id="sendTextCommandButton">Send text command</button>
+          </div>
+
+          <div id="commandMessage"></div>
+        </section>
+
+        <section>
+          <h3>Audio instruction</h3>
+          <p class="muted small">Record an audio instruction. It will be saved to the command inbox for the local agent pipeline.</p>
+
+          <div class="button-row">
+            <button id="startRecordingButton" class="secondary">Start recording</button>
+            <button id="stopRecordingButton" class="secondary" disabled>Stop recording</button>
+            <button id="sendAudioCommandButton" disabled>Send audio command</button>
+            <button id="clearAudioButton" class="danger" disabled>Clear audio</button>
+          </div>
+
+          <audio id="audioPreview" class="hidden" controls style="width:100%; margin-top:12px"></audio>
+          <div id="audioMessage"></div>
+        </section>
+      </section>
+
+      <section id="rawSection" class="card hidden">
+        <h2>Raw Data</h2>
+        <pre id="rawData"></pre>
+      </section>
+    </div>
   </main>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbzgOttUVUHomtvKCECBID-9Ly1bSoXfkGk8PEXqI5lEUmuIj47il4W_egdLPaSmof68/exec";
+
+    const storageKeys = {
+      token: "status_board_token",
+      view: "status_board_view"
+    };
+
+    let currentPayload = null;
+    let pattern = [];
+    let drawing = false;
+
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let recordedAudioBlob = null;
+    let recordedAudioMime = "audio/webm";
+
+    const unlockScreen = document.getElementById("unlockScreen");
+    const dashboardScreen = document.getElementById("dashboardScreen");
+    const patternGrid = document.getElementById("patternGrid");
+    const patternStatus = document.getElementById("patternStatus");
+    const unlockMessage = document.getElementById("unlockMessage");
+
+    const refreshButton = document.getElementById("refreshButton");
+    const lockButton = document.getElementById("lockButton");
+    const downloadButton = document.getElementById("downloadButton");
+    const rawButton = document.getElementById("rawButton");
+    const rawSection = document.getElementById("rawSection");
+    const rawData = document.getElementById("rawData");
+    const adminPanel = document.getElementById("adminPanel");
+
+    const commandType = document.getElementById("commandType");
+    const commandText = document.getElementById("commandText");
+    const sendTextCommandButton = document.getElementById("sendTextCommandButton");
+    const commandMessage = document.getElementById("commandMessage");
+
+    const startRecordingButton = document.getElementById("startRecordingButton");
+    const stopRecordingButton = document.getElementById("stopRecordingButton");
+    const sendAudioCommandButton = document.getElementById("sendAudioCommandButton");
+    const clearAudioButton = document.getElementById("clearAudioButton");
+    const audioPreview = document.getElementById("audioPreview");
+    const audioMessage = document.getElementById("audioMessage");
 
     function escapeHtml(value) {
       return String(value ?? "")
@@ -181,28 +500,189 @@
       return s === "done" || s === "completed" ? "pill done" : "pill";
     }
 
-    function loadJsonp(url) {
+    function showMessage(el, type, text) {
+      if (!text) {
+        el.innerHTML = "";
+        return;
+      }
+      el.innerHTML = `<div class="${type}">${escapeHtml(text)}</div>`;
+    }
+
+    function jsonp(params) {
       return new Promise((resolve, reject) => {
-        const callbackName = "statusBoardCallback_" + Date.now();
+        const callbackName = "statusBoardCallback_" + Date.now() + "_" + Math.floor(Math.random() * 1000000);
+
+        let script = null;
+
+        const timeout = setTimeout(() => {
+          cleanup();
+          reject(new Error("Request timed out."));
+        }, 20000);
+
+        function cleanup() {
+          clearTimeout(timeout);
+          delete window[callbackName];
+          if (script && script.parentNode) script.parentNode.removeChild(script);
+        }
 
         window[callbackName] = function(payload) {
-          delete window[callbackName];
-          script.remove();
+          cleanup();
           resolve(payload);
         };
 
-        const script = document.createElement("script");
-        const separator = url.includes("?") ? "&" : "?";
-        script.src = url + separator + "view=normal&callback=" + callbackName;
+        const query = new URLSearchParams({
+          ...params,
+          callback: callbackName
+        });
+
+        const separator = API_URL.includes("?") ? "&" : "?";
+        script = document.createElement("script");
+        script.src = API_URL + separator + query.toString();
 
         script.onerror = function() {
-          delete window[callbackName];
-          script.remove();
-          reject(new Error("Could not load data."));
+          cleanup();
+          reject(new Error("Could not reach data service."));
         };
 
         document.body.appendChild(script);
       });
+    }
+
+    function saveToken(token, view) {
+      sessionStorage.setItem(storageKeys.token, token);
+      sessionStorage.setItem(storageKeys.view, view);
+    }
+
+    function getToken() {
+      return sessionStorage.getItem(storageKeys.token) || "";
+    }
+
+    function clearToken() {
+      sessionStorage.removeItem(storageKeys.token);
+      sessionStorage.removeItem(storageKeys.view);
+    }
+
+    function clearPattern() {
+      pattern = [];
+      document.querySelectorAll(".dot").forEach(dot => dot.classList.remove("active"));
+      patternStatus.textContent = "Ready.";
+      showMessage(unlockMessage, "", "");
+    }
+
+    function addDot(dot) {
+      const value = dot.getAttribute("data-value");
+
+      if (!value || pattern.includes(value)) return;
+
+      pattern.push(value);
+      dot.classList.add("active");
+      patternStatus.textContent = "Pattern: " + pattern.join("-");
+    }
+
+    function dotFromPoint(x, y) {
+      const el = document.elementFromPoint(x, y);
+      if (el && el.classList && el.classList.contains("dot")) return el;
+      return null;
+    }
+
+    async function submitPattern() {
+      const patternText = pattern.join("-");
+
+      if (!patternText) {
+        patternStatus.textContent = "Ready.";
+        return;
+      }
+
+      patternStatus.textContent = "Checking...";
+
+      try {
+        const payload = await jsonp({
+          action: "unlock",
+          pattern: patternText
+        });
+
+        if (!payload || !payload.ok) {
+          showMessage(unlockMessage, "error", "Access denied.");
+          setTimeout(clearPattern, 700);
+          return;
+        }
+
+        saveToken(payload.token, payload.view);
+        clearPattern();
+        await loadDashboard();
+
+      } catch (error) {
+        showMessage(unlockMessage, "error", error.message);
+        setTimeout(clearPattern, 900);
+      }
+    }
+
+    patternGrid.addEventListener("pointerdown", event => {
+      drawing = true;
+      patternGrid.setPointerCapture(event.pointerId);
+      clearPattern();
+
+      const dot = dotFromPoint(event.clientX, event.clientY);
+      if (dot) addDot(dot);
+    });
+
+    patternGrid.addEventListener("pointermove", event => {
+      if (!drawing) return;
+
+      const dot = dotFromPoint(event.clientX, event.clientY);
+      if (dot) addDot(dot);
+    });
+
+    patternGrid.addEventListener("pointerup", async event => {
+      if (!drawing) return;
+      drawing = false;
+      await submitPattern();
+    });
+
+    patternGrid.addEventListener("pointercancel", () => {
+      drawing = false;
+      clearPattern();
+    });
+
+    document.getElementById("resetPatternButton").addEventListener("click", clearPattern);
+
+    async function loadDashboard() {
+      const token = getToken();
+
+      if (!token) {
+        showUnlock();
+        return;
+      }
+
+      try {
+        const payload = await jsonp({
+          action: "load",
+          token: token
+        });
+
+        if (!payload || !payload.ok) {
+          clearToken();
+          showUnlock();
+          showMessage(unlockMessage, "error", "Session expired. Draw pattern again.");
+          return;
+        }
+
+        currentPayload = payload;
+        render(payload);
+
+      } catch (error) {
+        showMessage(unlockMessage, "error", error.message);
+      }
+    }
+
+    function showUnlock() {
+      dashboardScreen.classList.add("hidden");
+      unlockScreen.classList.remove("hidden");
+    }
+
+    function showDashboard() {
+      unlockScreen.classList.add("hidden");
+      dashboardScreen.classList.remove("hidden");
     }
 
     function getItems(data) {
@@ -225,12 +705,21 @@
       return asArray(data.extra || data.components || data.reimbursements || [], "extra");
     }
 
-    function render(payload) {
-      if (!payload || !payload.ok) {
-        throw new Error(payload && payload.error ? payload.error : "Data source returned an error.");
+    function itemTitle(item, index, view) {
+      if (view === "normal") {
+        return item.label || item.title || item.task || `Item ${index + 1}`;
       }
 
+      return item.title || item.label || item.task || item.name || `Item ${index + 1}`;
+    }
+
+    function itemOwner(item) {
+      return item.owner || item.work_done_by || item.member || item.member_name || item.reported_by || "";
+    }
+
+    function render(payload) {
       const data = payload.data || {};
+      const view = payload.view || "normal";
 
       const items = getItems(data);
       const people = getPeople(data);
@@ -255,13 +744,21 @@
         payload.served_at ||
         "unknown";
 
+      document.getElementById("viewBadge").textContent = view === "admin" ? "admin view" : "normal view";
+      document.getElementById("viewBadge").className = view === "admin" ? "pill admin" : "pill";
+      document.getElementById("servedAt").textContent = "Last loaded: " + lastUpdate;
+
+      downloadButton.classList.toggle("hidden", view !== "admin");
+      rawButton.classList.toggle("hidden", view !== "admin");
+      adminPanel.classList.toggle("hidden", view !== "admin");
+
       const itemRows = items.length
-        ? items.map(item => `
+        ? items.map((item, index) => `
           <tr>
             <td>${escapeHtml(item.public_id || item.item_id || item.task_id || item.id || "")}</td>
-            <td>${escapeHtml(item.label || item.title || item.task || "")}</td>
+            <td>${escapeHtml(itemTitle(item, index, view))}</td>
             <td><span class="${stateClass(item.state || item.status)}">${escapeHtml(item.state || item.status || "")}</span></td>
-            <td>${escapeHtml(item.owner || item.work_done_by || item.member || "")}</td>
+            <td>${escapeHtml(itemOwner(item))}</td>
             <td>${escapeHtml(item.area || item.category_name || item.category_id || item.category || "")}</td>
             <td>${escapeHtml(item.points ?? item.weight ?? "")}</td>
           </tr>
@@ -273,7 +770,7 @@
           <tr>
             <td>${escapeHtml(person.label || person.name || person.display_name || person.id || "")}</td>
             <td>${escapeHtml(person.state || person.status || "")}</td>
-            <td>${escapeHtml(person.items_count ?? person.tasks_count ?? person.task_count ?? "")}</td>
+            <td>${escapeHtml(person.items_count ?? person.tasks_count ?? person.task_count ?? person.tasks ?? "")}</td>
             <td>${escapeHtml(person.total_points ?? person.total_weight ?? "")}</td>
           </tr>
         `).join("")
@@ -301,7 +798,35 @@
         `).join("")
         : `<tr><td colspan="4" class="muted">No additional visible items yet.</td></tr>`;
 
-      document.getElementById("app").innerHTML = `
+      const updateRows = updates.length
+        ? updates.map((update, index) => `
+          <tr>
+            <td>${escapeHtml(update.label || update.report_id || update.id || `Update ${index + 1}`)}</td>
+            <td>${escapeHtml(update.member_name || update.owner || "")}</td>
+            <td>${escapeHtml(update.status || update.state || "")}</td>
+            <td>${escapeHtml(update.applied_at || update.submitted_at || "")}</td>
+          </tr>
+        `).join("")
+        : `<tr><td colspan="4" class="muted">No updates listed.</td></tr>`;
+
+      const queue = data.command_queue || {};
+      const queueHtml = view === "admin" ? `
+        <section class="card">
+          <h2>Command Queue</h2>
+          <table>
+            <thead>
+              <tr><th>Queue</th><th>Count</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Inbox</td><td>${escapeHtml((queue.inbox || []).length)}</td></tr>
+              <tr><td>Processed</td><td>${escapeHtml((queue.processed || []).length)}</td></tr>
+              <tr><td>Failed</td><td>${escapeHtml((queue.failed || []).length)}</td></tr>
+            </tbody>
+          </table>
+        </section>
+      ` : "";
+
+      document.getElementById("content").innerHTML = `
         <div class="grid">
           <div class="card">
             <div class="label">Visible items</div>
@@ -383,21 +908,231 @@
           </table>
         </section>
 
+        <section class="card">
+          <h2>Updates</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Update</th>
+                <th>Owner</th>
+                <th>State</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody>${updateRows}</tbody>
+          </table>
+        </section>
+
+        ${queueHtml}
+
         <div class="footer">
           Last update: ${escapeHtml(lastUpdate)}
         </div>
       `;
 
-      document.getElementById("status").style.display = "none";
-      document.getElementById("app").style.display = "block";
+      rawData.textContent = JSON.stringify(payload, null, 2);
+      showDashboard();
     }
 
-    loadJsonp(API_URL)
-      .then(render)
-      .catch(error => {
-        document.getElementById("status").innerHTML =
-          `<div class="error"><strong>Could not load the status board.</strong><br>${escapeHtml(error.message)}</div>`;
+    async function sendTextCommand(type, text) {
+      const token = getToken();
+
+      if (!token) {
+        showMessage(commandMessage, "error", "Session expired. Lock and unlock again.");
+        return;
+      }
+
+      try {
+        const payload = await jsonp({
+          action: "command",
+          token: token,
+          command_type: type,
+          text: text || ""
+        });
+
+        if (!payload || !payload.ok) {
+          showMessage(commandMessage, "error", payload && payload.error ? payload.error : "Command failed.");
+          return;
+        }
+
+        showMessage(commandMessage, "success", "Command queued: " + payload.command_id);
+        commandText.value = "";
+        await loadDashboard();
+
+      } catch (error) {
+        showMessage(commandMessage, "error", error.message);
+      }
+    }
+
+    function blobToDataUrl(blob) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ""));
+        reader.onerror = () => reject(new Error("Could not read audio."));
+        reader.readAsDataURL(blob);
       });
+    }
+
+    async function sendAudioCommand() {
+      if (!recordedAudioBlob) {
+        showMessage(audioMessage, "error", "No audio recorded.");
+        return;
+      }
+
+      const token = getToken();
+
+      if (!token) {
+        showMessage(audioMessage, "error", "Session expired. Lock and unlock again.");
+        return;
+      }
+
+      try {
+        const dataUrl = await blobToDataUrl(recordedAudioBlob);
+
+        const form = new FormData();
+        form.append("action", "command_upload");
+        form.append("token", token);
+        form.append("command_type", commandType.value);
+        form.append("text", commandText.value.trim());
+        form.append("audio_data_url", dataUrl);
+        form.append("audio_mime_type", recordedAudioMime);
+
+        await fetch(API_URL, {
+          method: "POST",
+          mode: "no-cors",
+          body: form
+        });
+
+        showMessage(audioMessage, "success", "Audio command sent to inbox. Refresh after a moment.");
+        clearAudio();
+        commandText.value = "";
+        setTimeout(loadDashboard, 1800);
+
+      } catch (error) {
+        showMessage(audioMessage, "error", error.message);
+      }
+    }
+
+    async function startRecording() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        audioChunks = [];
+        recordedAudioBlob = null;
+
+        const options = MediaRecorder.isTypeSupported("audio/webm")
+          ? { mimeType: "audio/webm" }
+          : {};
+
+        mediaRecorder = new MediaRecorder(stream, options);
+        recordedAudioMime = mediaRecorder.mimeType || "audio/webm";
+
+        mediaRecorder.ondataavailable = event => {
+          if (event.data && event.data.size > 0) audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          recordedAudioBlob = new Blob(audioChunks, { type: recordedAudioMime });
+          audioPreview.src = URL.createObjectURL(recordedAudioBlob);
+          audioPreview.classList.remove("hidden");
+          sendAudioCommandButton.disabled = false;
+          clearAudioButton.disabled = false;
+          stream.getTracks().forEach(track => track.stop());
+          showMessage(audioMessage, "success", "Audio ready.");
+        };
+
+        mediaRecorder.start();
+
+        startRecordingButton.disabled = true;
+        stopRecordingButton.disabled = false;
+        sendAudioCommandButton.disabled = true;
+        clearAudioButton.disabled = true;
+        showMessage(audioMessage, "success", "Recording...");
+
+      } catch (error) {
+        showMessage(audioMessage, "error", "Microphone unavailable or blocked.");
+      }
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
+      }
+
+      startRecordingButton.disabled = false;
+      stopRecordingButton.disabled = true;
+    }
+
+    function clearAudio() {
+      recordedAudioBlob = null;
+      audioChunks = [];
+      audioPreview.removeAttribute("src");
+      audioPreview.classList.add("hidden");
+      sendAudioCommandButton.disabled = true;
+      clearAudioButton.disabled = true;
+      showMessage(audioMessage, "", "");
+    }
+
+    function downloadCurrentJson() {
+      if (!currentPayload) return;
+
+      const blob = new Blob([JSON.stringify(currentPayload, null, 2)], {
+        type: "application/json"
+      });
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+
+      a.href = url;
+      a.download = "dashboard-snapshot.json";
+      a.click();
+
+      URL.revokeObjectURL(url);
+    }
+
+    refreshButton.addEventListener("click", loadDashboard);
+
+    lockButton.addEventListener("click", () => {
+      clearToken();
+      currentPayload = null;
+      rawSection.classList.add("hidden");
+      rawButton.textContent = "Show raw data";
+      showUnlock();
+    });
+
+    downloadButton.addEventListener("click", downloadCurrentJson);
+
+    rawButton.addEventListener("click", () => {
+      const hidden = rawSection.classList.toggle("hidden");
+      rawButton.textContent = hidden ? "Show raw data" : "Hide raw data";
+    });
+
+    sendTextCommandButton.addEventListener("click", () => {
+      sendTextCommand(commandType.value, commandText.value.trim());
+    });
+
+    document.querySelectorAll("[data-quick-command]").forEach(button => {
+      button.addEventListener("click", () => {
+        const type = button.getAttribute("data-quick-command");
+        const text = commandText.value.trim();
+        sendTextCommand(type, text);
+      });
+    });
+
+    startRecordingButton.addEventListener("click", startRecording);
+    stopRecordingButton.addEventListener("click", stopRecording);
+    sendAudioCommandButton.addEventListener("click", sendAudioCommand);
+    clearAudioButton.addEventListener("click", clearAudio);
+
+    if (API_URL.includes("PASTE_YOUR_APPS_SCRIPT")) {
+      showMessage(unlockMessage, "error", "Apps Script URL was not configured.");
+    } else {
+      if (getToken()) {
+        loadDashboard();
+      } else {
+        showUnlock();
+      }
+    }
   </script>
 </body>
 </html>
