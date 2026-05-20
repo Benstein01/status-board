@@ -1,0 +1,910 @@
+:root {
+  --bg: #f6f7fb;
+  --card: #ffffff;
+  --text: #111827;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --dark: #111827;
+  --soft: #f9fafb;
+  --accent: #3730a3;
+  --accent-bg: #eef2ff;
+  --done: #166534;
+  --done-bg: #dcfce7;
+  --error: #b91c1c;
+  --error-bg: #fee2e2;
+  --error-line: #fecaca;
+  --ok: #166534;
+  --ok-bg: #dcfce7;
+  --admin-bg: #fef3c7;
+  --admin-text: #92400e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+header {
+  background: var(--dark);
+  color: white;
+  padding: 28px 18px;
+}
+
+.wrap,
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+main {
+  padding: 20px 14px 48px;
+}
+
+h1 {
+  margin: 0 0 6px;
+  font-size: 30px;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  margin: 0 0 12px;
+  font-size: 20px;
+}
+
+h3 {
+  margin: 0 0 10px;
+  font-size: 17px;
+}
+
+.subtitle {
+  margin: 0;
+  color: #d1d5db;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+}
+
+.unlock-card {
+  max-width: 650px;
+  margin: 34px auto 0;
+  text-align: center;
+  padding: 28px;
+}
+
+.pattern-grid {
+  width: 280px;
+  height: 280px;
+  margin: 22px auto 12px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+  touch-action: none;
+  user-select: none;
+}
+
+.dot {
+  border: 2px solid #374151;
+  background: #111827;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.dot::after {
+  content: "";
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #9ca3af;
+  display: block;
+}
+
+.dot.active {
+  border-color: #818cf8;
+  box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.16);
+}
+
+.dot.active::after {
+  background: #c7d2fe;
+}
+
+.muted,
+.label {
+  color: var(--muted);
+}
+
+.small {
+  font-size: 13px;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+  justify-content: center;
+}
+
+.top-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+button {
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+  background: #111827;
+  color: white;
+}
+
+button.secondary {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+button.danger {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+textarea,
+select {
+  width: 100%;
+  padding: 12px 13px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font: inherit;
+  outline: none;
+  background: white;
+}
+
+textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+label {
+  display: block;
+  font-weight: 650;
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.admin-actions-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.metric {
+  font-size: 28px;
+  font-weight: 750;
+  margin-top: 6px;
+}
+
+section {
+  margin-top: 18px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 11px 10px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+th {
+  font-size: 13px;
+  color: var(--muted);
+  background: var(--soft);
+  font-weight: 650;
+}
+
+.pill {
+  display: inline-block;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.done {
+  background: var(--done-bg);
+  color: var(--done);
+}
+
+.admin {
+  background: var(--admin-bg);
+  color: var(--admin-text);
+}
+
+.error {
+  color: var(--error);
+  background: var(--error-bg);
+  border: 1px solid var(--error-line);
+  padding: 12px;
+  border-radius: 12px;
+  margin-top: 14px;
+  text-align: left;
+}
+
+.success {
+  color: var(--ok);
+  background: var(--ok-bg);
+  border: 1px solid #bbf7d0;
+  padding: 12px;
+  border-radius: 12px;
+  margin-top: 14px;
+  text-align: left;
+}
+
+.footer {
+  text-align: center;
+  margin-top: 22px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #0b1020;
+  color: #e5e7eb;
+  padding: 14px;
+  border-radius: 12px;
+  overflow: auto;
+  max-height: 420px;
+  text-align: left;
+}
+
+.hidden {
+  display: none !important;
+}
+
+@media (max-width: 850px) {
+  .grid,
+  .admin-actions-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .top-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 520px) {
+  .grid,
+  .admin-actions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  h1 {
+    font-size: 25px;
+  }
+
+  .pattern-grid {
+    width: 240px;
+    height: 240px;
+    gap: 18px;
+  }
+}
+
+/* =========================================================
+   Phase 2: Premium Lock Page UI
+   Approved copy:
+   Ghz Lab Workspace / NO Project dashboard...
+   Secure Access / Draw your access pattern...
+   ========================================================= */
+
+.unlock-card {
+  max-width: 640px;
+  margin: 44px auto 0;
+  padding: 34px 28px 30px;
+}
+
+.lock-icon {
+  width: 42px;
+  height: 42px;
+  margin: 0 auto 12px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.access-kicker {
+  margin: 0 0 8px;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lock-instruction {
+  margin: 0;
+  font-size: 16px;
+}
+
+.lock-helper {
+  max-width: 420px;
+  margin: 8px auto 0;
+  font-size: 14px;
+}
+
+.pattern-grid {
+  margin-top: 24px;
+}
+
+.dot {
+  transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
+}
+
+.dot.active {
+  transform: scale(1.04);
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 5px rgba(79, 70, 229, 0.14);
+}
+
+.dot.active::after {
+  background: #6366f1;
+}
+
+#patternStatus {
+  margin-top: 16px;
+  min-height: 24px;
+  font-weight: 500;
+}
+
+#unlockMessage .success,
+#unlockMessage .error {
+  max-width: 430px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+#resetPatternButton {
+  padding-left: 18px;
+  padding-right: 18px;
+}
+
+@media (max-width: 520px) {
+  .unlock-card {
+    margin-top: 24px;
+    padding: 26px 18px 24px;
+  }
+
+  .lock-helper {
+    font-size: 13px;
+  }
+}
+
+/* =========================================================
+   Phase 3: Team Dashboard UI wording + progress section
+   ========================================================= */
+
+.overview-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.progress-summary {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.progress-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.progress-track {
+  width: 100%;
+  height: 12px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #111827;
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+
+.status-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.status-breakdown span {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  padding: 5px 9px;
+  border-radius: 999px;
+}
+
+@media (max-width: 850px) {
+  .overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .progress-summary {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 520px) {
+  .overview-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   Phase 3.1: readable dates + richer status chips
+   ========================================================= */
+
+.pill.planned {
+  background: #eef2ff;
+  color: #3730a3;
+}
+
+.pill.in-progress {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.pill.blocked {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.pill.needs-review {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* =========================================================
+   Phase 4: Admin Workspace + Dashboard Editor
+   ========================================================= */
+
+.admin-workspace {
+  margin-top: 0;
+}
+
+.admin-workspace > .card {
+  margin-bottom: 18px;
+}
+
+.admin-workspace-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.mini-card {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  background: var(--soft);
+}
+
+.mini-card strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 18px;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.admin-editor-table input,
+.admin-editor-table select {
+  min-width: 150px;
+  padding: 8px 9px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.admin-editor-table input[data-field="title"] {
+  min-width: 300px;
+}
+
+.draft-panel {
+  margin-top: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  background: #fbfdff;
+}
+
+.draft-list {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+
+.draft-list li {
+  margin-bottom: 7px;
+}
+
+@media (max-width: 850px) {
+  .admin-overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-workspace-head {
+    flex-direction: column;
+  }
+}
+
+/* =========================================================
+   Phase 4.1: Admin editor dropdowns, duplicate, add task,
+   subtasks, and points UX help
+   ========================================================= */
+
+.points-help {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #4b5563;
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.admin-editor-table th,
+.admin-editor-table td {
+  white-space: nowrap;
+}
+
+.admin-editor-table input,
+.admin-editor-table select {
+  width: 100%;
+  min-width: 150px;
+}
+
+.admin-editor-table input[data-field="title"] {
+  min-width: 280px;
+}
+
+.editor-actions-cell {
+  min-width: 190px;
+}
+
+button.compact {
+  padding: 7px 9px;
+  border-radius: 9px;
+  font-size: 12px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+}
+
+@media (max-width: 850px) {
+  .points-help {
+    font-size: 12px;
+  }
+}
+
+
+/* Clean dashboard patch additions */
+.snapshot-message {
+  margin: 8px 0 14px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.success-text {
+  color: #166534;
+}
+
+.error-text {
+  color: #b91c1c;
+}
+
+.subtask-row {
+  background: #fbfdff;
+}
+
+.subtask-row td:first-child {
+  color: #4b5563;
+  font-weight: 650;
+}
+
+.subtask-indent {
+  display: inline-block;
+  margin-right: 8px;
+  color: #6b7280;
+}
+
+.archive-preview {
+  opacity: 0.62;
+  background: #fff7ed;
+}
+
+.archive-preview td {
+  text-decoration: line-through;
+}
+
+.editor-actions-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 230px;
+}
+
+button.compact,
+.compact {
+  padding: 7px 10px;
+  font-size: 12px;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.admin-editor-table {
+  min-width: 980px;
+}
+
+.admin-editor-table input,
+.admin-editor-table select,
+.admin-editor-table textarea {
+  width: 100%;
+  min-width: 130px;
+}
+
+.admin-editor-table textarea {
+  min-height: 42px;
+  resize: vertical;
+}
+
+.admin-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.mini-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  background: var(--soft);
+}
+
+.draft-list {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.draft-list li {
+  margin: 6px 0;
+}
+
+.pill.archived {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+@media (max-width: 760px) {
+  .admin-overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .editor-actions-cell {
+    min-width: 180px;
+  }
+}
+
+
+/* =========================================================
+   Phase 5: scrollable sections, click feedback, filters
+   ========================================================= */
+
+button {
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease, background-color 0.12s ease;
+  will-change: transform;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.10);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px) scale(0.98);
+  filter: brightness(0.96);
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08);
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(79, 70, 229, 0.24);
+  outline-offset: 2px;
+}
+
+.table-scroll-panel {
+  max-height: 520px;
+  overflow: auto;
+  border: 1px solid #edf0f4;
+  border-radius: 12px;
+}
+
+.table-scroll-medium {
+  max-height: 420px;
+  overflow: auto;
+}
+
+.updates-scroll {
+  max-height: 390px;
+}
+
+.table-scroll-panel table {
+  margin: 0;
+}
+
+.table-scroll-panel thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  box-shadow: 0 1px 0 var(--line);
+}
+
+.table-scroll-panel::-webkit-scrollbar,
+.table-scroll-medium::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.table-scroll-panel::-webkit-scrollbar-thumb,
+.table-scroll-medium::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+  border: 2px solid #f8fafc;
+}
+
+.table-scroll-panel::-webkit-scrollbar-track,
+.table-scroll-medium::-webkit-scrollbar-track {
+  background: #f8fafc;
+  border-radius: 999px;
+}
+
+.filter-panel {
+  margin: 6px 0 12px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #fbfdff;
+}
+
+.filter-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+.filter-grid label {
+  margin: 0;
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.filter-grid select,
+.filter-grid input {
+  margin-top: 5px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.filter-search {
+  grid-column: span 2;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: end;
+}
+
+.filter-actions button {
+  width: 100%;
+}
+
+@media (max-width: 850px) {
+  .filter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filter-search {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 520px) {
+  .filter-panel-head {
+    flex-direction: column;
+  }
+
+  .filter-grid,
+  .filter-search {
+    grid-template-columns: 1fr;
+    grid-column: span 1;
+  }
+}
