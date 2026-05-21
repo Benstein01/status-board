@@ -815,6 +815,44 @@ window.AdminEditor = (function () {
       changes: currentChanges
     };
 
+    try {
+      showEditorMessage("Applying dashboard changes online...", "success");
+
+      const directResult = await window.Api.jsonp({
+        action: "apply_dashboard_changes",
+        token,
+        payload: JSON.stringify(commandPayload),
+        _: String(Date.now())
+      });
+
+      if (directResult && directResult.ok) {
+        currentChanges = [];
+        renderDraftChanges();
+        showEditorMessage("Done. Dashboard changes were applied online. Reloading latest snapshot...", "success");
+
+        if (window.AppActions && window.AppActions.reloadLatestSnapshot) {
+          await window.AppActions.reloadLatestSnapshot();
+        }
+
+        showEditorMessage("Done. Latest snapshot loaded.", "success");
+        return;
+      }
+
+      const errorCode = directResult && directResult.error ? directResult.error : "unknown_error";
+      const canFallback = ["unknown_action", "unsupported_action", "cloud_apply_not_available"].includes(errorCode);
+
+      if (!canFallback) {
+        showEditorMessage(errorCode + (directResult && directResult.message ? ": " + directResult.message : ""), "error");
+        submitButton.disabled = false;
+        return;
+      }
+
+      showEditorMessage("Online apply is not available yet. Falling back to local watcher queue...", "success");
+
+    } catch (error) {
+      showEditorMessage("Online apply failed. Falling back to local watcher queue...", "success");
+    }
+
     const text =
 `Dashboard edit request
 
@@ -846,14 +884,14 @@ ${JSON.stringify(commandPayload, null, 2)}
       }
 
       const commandId = result.command_id;
-      showEditorMessage("Dashboard changes submitted: " + commandId + ". Applying changes...", "success");
+      showEditorMessage("Dashboard changes submitted to local watcher: " + commandId + ". Applying changes...", "success");
       currentChanges = [];
       renderDraftChanges();
 
       const finalStatus = await window.Api.pollCommandStatus(commandId, {
         onStatus(status) {
           if (status === "inbox") {
-            showEditorMessage("Dashboard changes submitted: " + commandId + ". Waiting for processing...", "success");
+            showEditorMessage("Dashboard changes submitted: " + commandId + ". Waiting for local watcher...", "success");
           } else if (status === "waiting") {
             showEditorMessage("Checking dashboard change status: " + commandId + "...", "success");
           }
@@ -1256,10 +1294,49 @@ ${JSON.stringify(commandPayload, null, 2)}
         const ok = window.confirm(`Are you sure you want to ${label} this proposal?`);
         if (!ok) return;
 
+        button.disabled = true;
+
+        try {
+          if (message) message.innerHTML = `<div class="success">${label[0].toUpperCase() + label.slice(1)} proposal online...</div>`;
+
+          const result = await window.Api.jsonp({
+            action: type,
+            token: window.AppState.getToken(),
+            _: String(Date.now())
+          });
+
+          if (result && result.ok) {
+            if (message) message.innerHTML = `<div class="success">Proposal ${label}d. Reloading latest snapshot...</div>`;
+
+            if (window.AppActions && window.AppActions.reloadLatestSnapshot) {
+              await window.AppActions.reloadLatestSnapshot();
+            }
+
+            if (message) message.innerHTML = `<div class="success">Done. Proposal ${label}d and latest snapshot loaded.</div>`;
+            return;
+          }
+
+          const errorCode = result && result.error ? result.error : "unknown_error";
+          const canFallback = ["unknown_action", "unsupported_action", "cloud_apply_not_available"].includes(errorCode);
+
+          if (!canFallback) {
+            if (message) message.innerHTML = `<div class="error">${escapeHtml(errorCode + (result && result.message ? ": " + result.message : ""))}</div>`;
+            button.disabled = false;
+            return;
+          }
+
+          if (message) message.innerHTML = `<div class="success">Online proposal action is not available yet. Falling back to local watcher queue...</div>`;
+
+        } catch (error) {
+          if (message) message.innerHTML = `<div class="success">Online proposal action failed. Falling back to local watcher queue...</div>`;
+        }
+
         if (window.AdminActions && window.AdminActions.sendTextCommand) {
           await window.AdminActions.sendTextCommand(type, `Proposal Review action: ${type}`);
           if (message) message.innerHTML = `<div class="success">${label[0].toUpperCase() + label.slice(1)} proposal command queued. Wait for processing, then reload the latest snapshot.</div>`;
         }
+
+        button.disabled = false;
       });
     });
 
