@@ -57,11 +57,16 @@ window.AdminActions = (function () {
       });
 
       if (finalStatus.status === "processed") {
-        showMessage(commandMessage, "success", "Done. The local watcher processed the command. Click Reload latest snapshot.");
+        showMessage(commandMessage, "success", "Done. The command was processed. Reloading latest snapshot if needed...");
+        const shouldReload = ["approve_proposal", "reject_proposal", "request_changes", "refresh_snapshot"].includes(type);
+        if (shouldReload && window.AppActions && window.AppActions.reloadLatestSnapshot) {
+          await window.AppActions.reloadLatestSnapshot();
+          showMessage(commandMessage, "success", "Done. Latest snapshot loaded.");
+        }
       } else if (finalStatus.status === "failed") {
         showMessage(commandMessage, "error", "The command moved to Failed. Check the watcher log or Drive Failed folder: " + commandId);
       } else {
-        showMessage(commandMessage, "success", "Command is still queued or status is unclear. Check the watcher, then use Reload latest snapshot.");
+        showMessage(commandMessage, "success", "Command is still queued or status is unclear. Check the watcher if it does not finish.");
       }
 
     } catch (error) {
@@ -102,7 +107,7 @@ window.AdminActions = (function () {
       showMessage(
         audioMessage,
         "success",
-        "Audio command queued. The local watcher will process it. Then use Reload latest snapshot."
+        "Audio command queued. The local watcher will process it."
       );
 
       clearAudio();
@@ -195,5 +200,5 @@ window.AdminActions = (function () {
     document.getElementById("clearAudioButton").addEventListener("click", clearAudio);
   }
 
-  return { setup };
+  return { setup, sendTextCommand };
 })();

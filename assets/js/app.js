@@ -130,6 +130,19 @@ window.AppState = (function () {
     URL.revokeObjectURL(url);
   }
 
+
+  window.AppActions = {
+    loadDashboard,
+    reloadLatestSnapshot() {
+      return loadDashboard({ manual: true });
+    },
+    setSnapshotMessage(message, kind = "") {
+      if (!snapshotMessage) return;
+      snapshotMessage.textContent = message || "";
+      snapshotMessage.className = kind ? "snapshot-message " + kind : "snapshot-message";
+    }
+  };
+
   refreshButton.addEventListener("click", () => loadDashboard({ manual: true }));
 
   document.getElementById("lockButton").addEventListener("click", () => {

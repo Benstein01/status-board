@@ -63,25 +63,24 @@
       <div id="content"></div>
 
       <section id="adminPanel" class="card hidden">
-        <h2>Admin Actions</h2>
-
-        <div class="grid admin-actions-grid">
-          <button data-quick-command="approve_proposal">Approve proposal</button>
-          <button data-quick-command="reject_proposal" class="danger">Reject proposal</button>
-          <button data-quick-command="refresh_snapshot" class="secondary">Queue snapshot rebuild</button>
-        </div>
+        <h2>Agent & System Actions</h2>
+        <details class="advanced-actions">
+          <summary>Advanced system maintenance</summary>
+          <p class="muted small">Use this only when you need to rebuild the cloud snapshot without making dashboard edits. Normal dashboard edits rebuild/reload automatically.</p>
+          <div class="button-row advanced-action-row">
+            <button data-quick-command="refresh_snapshot" class="secondary">Rebuild snapshot</button>
+          </div>
+        </details>
 
         <section>
-          <h3>Send instruction</h3>
+          <h3>Send instruction to local agent</h3>
+          <p class="muted small">Use this for general agent instructions or special requests. Proposal approval happens only in Proposal Review.</p>
 
           <label for="commandType">Command type</label>
           <select id="commandType">
             <option value="agent_instruction">Agent instruction</option>
             <option value="request_changes">Request changes</option>
-            <option value="approve_proposal">Approve proposal</option>
-            <option value="reject_proposal">Reject proposal</option>
-            <option value="refresh_snapshot">Queue snapshot rebuild</option>
-          </select>
+</select>
 
           <div style="height:12px"></div>
 

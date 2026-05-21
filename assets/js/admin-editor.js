@@ -75,8 +75,22 @@ window.AdminEditor = (function () {
   let subtaskCounters = {};
 
   function getTechnicalTasks(data) {
-    const all = asArray(data.technical_tasks || data.tasks || [], "tasks");
-    return all.filter(task => !task.archived && task.type !== "management" && task.kind !== "management");
+    const main = asArray(data.technical_tasks || data.tasks || [], "tasks");
+    const extra = asArray(data.extra_technical_tasks || [], "extra_technical_tasks");
+    const byId = new Map();
+
+    main.concat(extra).forEach(task => {
+      if (!task || task.archived || task.type === "management" || task.kind === "management") return;
+      const id = rawId(task) || JSON.stringify(task);
+      if (!byId.has(id)) byId.set(id, task);
+    });
+
+    return Array.from(byId.values()).sort((a, b) => {
+      const ao = Number(a.sort_order ?? 999999);
+      const bo = Number(b.sort_order ?? 999999);
+      if (ao !== bo) return ao - bo;
+      return String(rawId(a)).localeCompare(String(rawId(b)));
+    });
   }
 
   function getManagementTasks(data) {
@@ -237,8 +251,10 @@ window.AdminEditor = (function () {
 
   function makeTechnicalRow(options) {
     const {
-      id, displayId, title, status, doneBy, area, points, rowKind, sourceTaskId, parentTaskId, isSubtask
+      id, displayId, title, status, doneBy, area, points, rowKind, sourceTaskId, parentTaskId, isSubtask, sortOrder
     } = options;
+
+    const safeSortOrder = sortOrder === undefined || sortOrder === null ? "" : String(sortOrder);
 
     return `
       <tr
@@ -249,6 +265,8 @@ window.AdminEditor = (function () {
         data-display-id="${escapeHtml(displayId)}"
         data-source-item-id="${escapeHtml(sourceTaskId || "")}"
         data-parent-task-id="${escapeHtml(parentTaskId || "")}"
+        data-original-sort-order="${escapeHtml(safeSortOrder)}"
+        data-sort-order="${escapeHtml(safeSortOrder)}"
       >
         <td>
           <strong>${escapeHtml(displayId)}</strong>
@@ -266,10 +284,14 @@ window.AdminEditor = (function () {
           ${rowKind === "archive" ? `
             <button class="secondary compact" data-editor-action="undo_archive">Undo</button>
           ` : rowKind === "existing" ? `
+            <button class="secondary compact" data-editor-action="move_up" title="Move up">↑</button>
+            <button class="secondary compact" data-editor-action="move_down" title="Move down">↓</button>
             <button class="secondary compact" data-editor-action="duplicate" data-source-id="${escapeHtml(id)}">Duplicate</button>
-            ${isSubtask ? "" : `<button class="secondary compact" data-editor-action="add_subtask" data-parent-id="${escapeHtml(id)}">Add subtask</button>`}
+            ${isSubtask ? `<button class="secondary compact" data-editor-action="promote_subtask">Promote</button>` : `<button class="secondary compact" data-editor-action="add_subtask" data-parent-id="${escapeHtml(id)}">Add subtask</button><button class="secondary compact" data-editor-action="make_subtask">Make subtask</button>`}
             <button class="danger compact" data-editor-action="archive_existing">Remove</button>
           ` : `
+            <button class="secondary compact" data-editor-action="move_up" title="Move up">↑</button>
+            <button class="secondary compact" data-editor-action="move_down" title="Move down">↓</button>
             <button class="danger compact" data-editor-action="remove_new_row">Remove</button>
           `}
         </td>
@@ -420,6 +442,45 @@ window.AdminEditor = (function () {
           to: value
         });
       });
+
+      if (domain === "technical" && rowKind === "existing") {
+        const originalSort = String(row.getAttribute("data-original-sort-order") || "");
+        const currentSort = String(row.getAttribute("data-sort-order") || "");
+        if (currentSort && currentSort !== originalSort) {
+          changes.push({
+            type: "task_update",
+            id: itemId,
+            task_id: itemId,
+            item_id: itemId,
+            display_id: displayId,
+            field: "sort_order",
+            from: originalSort,
+            to: currentSort
+          });
+        }
+      }
+
+      if (domain === "technical" && rowKind === "existing") {
+        const convertAction = row.getAttribute("data-convert-action") || "";
+        if (convertAction === "task_to_subtask") {
+          changes.push({
+            type: "task_convert_to_subtask",
+            id: itemId,
+            task_id: itemId,
+            item_id: itemId,
+            display_id: displayId,
+            parent_task_id: row.getAttribute("data-new-parent-task-id") || ""
+          });
+        } else if (convertAction === "subtask_to_task") {
+          changes.push({
+            type: "subtask_promote_to_task",
+            id: itemId,
+            task_id: itemId,
+            item_id: itemId,
+            display_id: displayId
+          });
+        }
+      }
     }
 
     currentChanges = changes;
@@ -439,7 +500,8 @@ window.AdminEditor = (function () {
       type: "type",
       amount: "amount",
       bureau_status: "bureau/client status",
-      notes: "notes"
+      notes: "notes",
+      sort_order: "order"
     };
 
     return map[field] || field;
@@ -468,6 +530,14 @@ window.AdminEditor = (function () {
       return `<strong>${escapeHtml(change.display_id)}</strong> new cost/reimbursement: <strong>${escapeHtml(change.values.description || "Untitled cost")}</strong>`;
     }
 
+    if (change.type === "task_convert_to_subtask") {
+      return `<strong>${escapeHtml(change.display_id || change.task_id)}</strong> will become a subtask under <strong>${escapeHtml(formatId(change.parent_task_id))}</strong>.`;
+    }
+
+    if (change.type === "subtask_promote_to_task") {
+      return `<strong>${escapeHtml(change.display_id || change.task_id)}</strong> will be promoted to a main task.`;
+    }
+
     if (change.type.endsWith("_archive")) {
       return `<strong>${escapeHtml(change.display_id || change.id || change.task_id)}</strong> will be removed from active dashboards.`;
     }
@@ -490,7 +560,7 @@ window.AdminEditor = (function () {
     submitButton.disabled = currentChanges.length === 0;
 
     if (!currentChanges.length) {
-      list.innerHTML = `<p class="muted small">No draft changes yet. Edit a field, add a task, add a cost, or remove an entry.</p>`;
+      list.innerHTML = `<p class="muted small">No dashboard changes yet. Edit a field, add a task, add a cost, or remove an entry.</p>`;
       return;
     }
 
@@ -514,6 +584,65 @@ window.AdminEditor = (function () {
       input.addEventListener("input", collectChanges);
       input.addEventListener("change", collectChanges);
     });
+  }
+
+  function normalizeTaskInputId(value) {
+    const raw = String(value || "").trim();
+    if (!raw) return "";
+
+    const rows = Array.from(document.querySelectorAll("[data-domain='technical'][data-admin-row='true']"));
+    const found = rows.find(row => {
+      const id = row.getAttribute("data-item-id") || "";
+      const display = row.getAttribute("data-display-id") || "";
+      return raw.toLowerCase() === id.toLowerCase() || raw.toLowerCase() === display.toLowerCase();
+    });
+
+    return found ? found.getAttribute("data-item-id") : raw;
+  }
+
+  function refreshTechnicalSortOrders() {
+    const rows = Array.from(document.querySelectorAll("[data-domain='technical'][data-admin-row='true']"));
+    rows.forEach((row, index) => {
+      row.setAttribute("data-sort-order", String((index + 1) * 10));
+    });
+  }
+
+  function moveEditorRow(row, direction) {
+    if (!row) return;
+    if (direction < 0 && row.previousElementSibling) {
+      row.parentNode.insertBefore(row, row.previousElementSibling);
+    } else if (direction > 0 && row.nextElementSibling) {
+      row.parentNode.insertBefore(row.nextElementSibling, row);
+    }
+    refreshTechnicalSortOrders();
+    collectChanges();
+  }
+
+  function markMakeSubtask(row) {
+    if (!row) return;
+    const currentId = row.getAttribute("data-item-id") || "";
+    const parentInput = window.prompt("Make this task a subtask of which task? Type the parent ID, for example T-1 or T-0001.", "");
+    if (!parentInput) return;
+    const parentId = normalizeTaskInputId(parentInput);
+
+    if (!parentId || parentId === currentId) {
+      showEditorMessage("Choose a different parent task.", "error");
+      return;
+    }
+
+    row.setAttribute("data-convert-action", "task_to_subtask");
+    row.setAttribute("data-new-parent-task-id", parentId);
+    row.classList.add("convert-preview");
+    showEditorMessage("Conversion added to draft changes. Review the draft panel before submitting.", "success");
+    collectChanges();
+  }
+
+  function markPromoteSubtask(row) {
+    if (!row) return;
+    row.setAttribute("data-convert-action", "subtask_to_task");
+    row.classList.add("convert-preview");
+    showEditorMessage("Promotion added to draft changes. Review the draft panel before submitting.", "success");
+    collectChanges();
   }
 
   function addTechnicalTask() {
@@ -661,6 +790,8 @@ window.AdminEditor = (function () {
     if (change.type === "subtask_create") return `- Create subtask ${change.display_id} under ${formatId(change.parent_task_id)}: ${change.values.title}`;
     if (change.type === "management_create") return `- Create management task ${change.display_id}: ${change.values.title}`;
     if (change.type === "cost_create") return `- Create cost/reimbursement ${change.display_id}: ${change.values.description}`;
+    if (change.type === "task_convert_to_subtask") return `- Convert ${change.display_id || change.task_id} to subtask under ${formatId(change.parent_task_id)}`;
+    if (change.type === "subtask_promote_to_task") return `- Promote ${change.display_id || change.task_id} to a main task`;
     if (change.type.endsWith("_archive")) return `- Remove/archive ${change.display_id || change.id || change.task_id}`;
     return `- ${change.display_id || change.id || change.task_id}: ${labelForField(change.field)} from "${prettyValue(change.from, change.field)}" to "${prettyValue(change.to, change.field)}"`;
   }
@@ -715,26 +846,30 @@ ${JSON.stringify(commandPayload, null, 2)}
       }
 
       const commandId = result.command_id;
-      showEditorMessage("Draft changes queued: " + commandId + ". Waiting for the local watcher to finish...", "success");
+      showEditorMessage("Dashboard changes submitted: " + commandId + ". Applying changes...", "success");
       currentChanges = [];
       renderDraftChanges();
 
       const finalStatus = await window.Api.pollCommandStatus(commandId, {
         onStatus(status) {
           if (status === "inbox") {
-            showEditorMessage("Draft changes queued: " + commandId + ". Waiting for the local watcher...", "success");
+            showEditorMessage("Dashboard changes submitted: " + commandId + ". Waiting for processing...", "success");
           } else if (status === "waiting") {
-            showEditorMessage("Checking draft change status: " + commandId + "...", "success");
+            showEditorMessage("Checking dashboard change status: " + commandId + "...", "success");
           }
         }
       });
 
       if (finalStatus.status === "processed") {
-        showEditorMessage("Done. The local watcher processed the draft changes. Click Reload latest snapshot.", "success");
+        showEditorMessage("Done. Dashboard changes were applied. Reloading latest snapshot...", "success");
+        if (window.AppActions && window.AppActions.reloadLatestSnapshot) {
+          await window.AppActions.reloadLatestSnapshot();
+          showEditorMessage("Done. Dashboard changes were applied and the latest snapshot is loaded.", "success");
+        }
       } else if (finalStatus.status === "failed") {
-        showEditorMessage("The draft changes moved to Failed. Check the watcher log or Drive Failed folder: " + commandId, "error");
+        showEditorMessage("The dashboard changes moved to Failed. Check the watcher log or Drive Failed folder: " + commandId, "error");
       } else {
-        showEditorMessage("Draft changes are still queued or status is unclear. Check the watcher, then use Reload latest snapshot.", "success");
+        showEditorMessage("Dashboard changes are still processing. Keep the watcher running; the page will show the latest data after reload.", "success");
       }
 
     } catch (error) {
@@ -768,6 +903,7 @@ ${JSON.stringify(commandPayload, null, 2)}
         doneBy: taskDoneBy(task),
         area: taskAreaRaw(task),
         points: taskPoints(task),
+        sortOrder: task.sort_order || "",
         rowKind: "existing"
       }));
 
@@ -781,6 +917,7 @@ ${JSON.stringify(commandPayload, null, 2)}
           doneBy: taskDoneBy(subtask),
           area: taskAreaRaw(subtask),
           points: taskPoints(subtask),
+          sortOrder: subtask.sort_order || "",
           rowKind: "existing",
           parentTaskId: id,
           isSubtask: true
@@ -810,6 +947,135 @@ ${JSON.stringify(commandPayload, null, 2)}
     return rows.join("");
   }
 
+
+  function isProposalActive(data) {
+    const proposal = data && data.admin && data.admin.proposal ? data.admin.proposal : null;
+    if (!proposal) return false;
+    return Boolean(proposal.active);
+  }
+
+  function renderProposalTask(task) {
+    const status = task.status || "";
+    return `
+      <article class="proposal-change-card">
+        <div class="proposal-change-head">
+          <div>
+            <strong>${escapeHtml(task.title || "Untitled proposed task")}</strong>
+            <div class="muted small">${escapeHtml(task.display_id || task.id || "Proposed task")}</div>
+          </div>
+          <span class="pill ${status === "done" || status === "completed" ? "done" : ""}">${escapeHtml(titleCaseStatus(status || "planned"))}</span>
+        </div>
+        <div class="proposal-detail-grid">
+          <div><span class="label">Owner</span><strong>${escapeHtml(task.owner || task.work_done_by || "—")}</strong></div>
+          <div><span class="label">Area</span><strong>${escapeHtml(task.area_label || formatArea(task.area) || "—")}</strong></div>
+          <div><span class="label">Points</span><strong>${escapeHtml(task.points ?? "—")}</strong></div>
+          <div><span class="label">Confidence</span><strong>${escapeHtml(task.confidence || "—")}</strong></div>
+        </div>
+        ${task.details ? `<p class="muted small proposal-details">${escapeHtml(task.details)}</p>` : ""}
+        ${asArray(task.source_reports || [], "source_reports").length ? `<p class="muted small">Source report: ${asArray(task.source_reports || [], "source_reports").map(escapeHtml).join(", ")}</p>` : ""}
+      </article>
+    `;
+  }
+
+  function renderProposalComponent(component) {
+    return `
+      <article class="proposal-change-card">
+        <div class="proposal-change-head">
+          <div>
+            <strong>${escapeHtml(component.title || "Untitled proposed cost")}</strong>
+            <div class="muted small">${escapeHtml(component.display_id || component.id || "Proposed cost")}</div>
+          </div>
+          <span class="pill">${escapeHtml(titleCaseStatus(component.status || "proposed"))}</span>
+        </div>
+        <div class="proposal-detail-grid">
+          <div><span class="label">Type</span><strong>${escapeHtml(titleCaseStatus(component.type || "component"))}</strong></div>
+          <div><span class="label">Owner</span><strong>${escapeHtml(component.owner || "—")}</strong></div>
+          <div><span class="label">Amount</span><strong>${escapeHtml(component.amount || "—")}</strong></div>
+          <div><span class="label">Confidence</span><strong>${escapeHtml(component.confidence || "—")}</strong></div>
+        </div>
+        ${component.details ? `<p class="muted small proposal-details">${escapeHtml(component.details)}</p>` : ""}
+      </article>
+    `;
+  }
+
+  function renderProposalReview(data) {
+    const admin = data.admin || {};
+    const proposal = admin.proposal || {};
+    const active = Boolean(proposal.active);
+
+    if (!active) {
+      return `
+        <section class="card proposal-review-card proposal-empty-card">
+          <div class="admin-workspace-head">
+            <div>
+              <h2>Proposal Review</h2>
+              <p class="muted small">Review AI/local-agent proposals before they affect the team dashboard.</p>
+            </div>
+            <span class="pill">No proposal</span>
+          </div>
+          <div class="empty-state">
+            <h3>No proposal waiting for review</h3>
+            <p>When the local agent analyzes new reports, proposed dashboard changes will appear here before they are added to the team dashboard.</p>
+          </div>
+        </section>
+      `;
+    }
+
+    const tasks = asArray(proposal.proposed_tasks || [], "proposed_tasks");
+    const components = asArray(proposal.proposed_components || [], "proposed_components");
+    const questions = asArray(proposal.questions || [], "questions");
+    const reports = asArray(proposal.source_reports || [], "source_reports");
+
+    return `
+      <section class="card proposal-review-card">
+        <div class="admin-workspace-head">
+          <div>
+            <h2>Proposal Review</h2>
+            <p class="muted small">Review proposed changes before they are added to the team dashboard.</p>
+          </div>
+          <span class="pill warning">Proposal waiting</span>
+        </div>
+
+        <div class="admin-overview-grid">
+          <div class="mini-card"><div class="label">Status</div><strong>${escapeHtml(titleCaseStatus(proposal.status || "proposal_ready"))}</strong></div>
+          <div class="mini-card"><div class="label">Generated</div><strong>${escapeHtml(proposal.generated_at || "—")}</strong></div>
+          <div class="mini-card"><div class="label">Proposed tasks</div><strong>${escapeHtml(tasks.length)}</strong></div>
+          <div class="mini-card"><div class="label">Source reports</div><strong>${escapeHtml(reports.length)}</strong></div>
+        </div>
+
+        ${tasks.length ? `
+          <div class="proposal-block">
+            <h3>Proposed technical tasks</h3>
+            <div class="proposal-change-list">${tasks.map(renderProposalTask).join("")}</div>
+          </div>
+        ` : ""}
+
+        ${components.length ? `
+          <div class="proposal-block">
+            <h3>Proposed costs / reimbursements</h3>
+            <div class="proposal-change-list">${components.map(renderProposalComponent).join("")}</div>
+          </div>
+        ` : ""}
+
+        ${questions.length ? `
+          <div class="proposal-block">
+            <h3>Questions / needs clarification</h3>
+            <ul class="proposal-question-list">${questions.map(q => `<li>${escapeHtml(typeof q === "string" ? q : (q.question || q.text || JSON.stringify(q)))}</li>`).join("")}</ul>
+          </div>
+        ` : ""}
+
+        <div class="proposal-actions">
+          <p class="muted small">Approve only after checking the proposed changes. Approval is processed by the workspace pipeline, then the latest snapshot can be reloaded.</p>
+          <div class="button-row">
+            <button class="compact" data-proposal-command="approve_proposal">Approve proposal</button>
+            <button class="danger compact" data-proposal-command="reject_proposal">Reject proposal</button>
+          </div>
+          <div id="proposalReviewMessage" class="small"></div>
+        </div>
+      </section>
+    `;
+  }
+
   function render(payload) {
     const data = payload && payload.data ? payload.data : {};
     const view = payload && payload.view ? payload.view : "normal";
@@ -834,21 +1100,7 @@ ${JSON.stringify(commandPayload, null, 2)}
     shell.className = "admin-workspace";
 
     shell.innerHTML = `
-      <section class="card">
-        <div class="admin-workspace-head">
-          <div>
-            <h2>Admin Workspace</h2>
-            <p class="muted small">Review and prepare changes before sending them to the local watcher pipeline.</p>
-          </div>
-          <span class="pill admin">Draft editing</span>
-        </div>
-
-        <div class="admin-overview-grid">
-          <div class="mini-card"><div class="label">Proposal status</div><strong>${escapeHtml(data.admin?.proposal_status || "Not available")}</strong></div>
-          <div class="mini-card"><div class="label">Proposed tasks</div><strong>${escapeHtml(data.admin?.proposed_tasks_count ?? 0)}</strong></div>
-          <div class="mini-card"><div class="label">Proposed components</div><strong>${escapeHtml(data.admin?.proposed_components_count ?? 0)}</strong></div>
-        </div>
-      </section>
+      ${renderProposalReview(data)}
 
       <section class="card">
         <div class="admin-workspace-head">
@@ -935,13 +1187,13 @@ ${JSON.stringify(commandPayload, null, 2)}
 
       <section class="card">
         <div class="draft-panel">
-          <h2>Draft Changes</h2>
+          <h2>Dashboard Changes</h2>
           <div id="draftChangesList">
-            <p class="muted small">No draft changes yet. Edit a field above to create a change request.</p>
+            <p class="muted small">No dashboard changes yet. Edit a field above to create a change request.</p>
           </div>
 
           <div class="button-row">
-            <button id="submitDraftChangesButton" disabled>Queue draft changes</button>
+            <button id="submitDraftChangesButton" disabled>Apply dashboard changes</button>
             <button id="discardDraftChangesButton" class="secondary">Discard changes</button>
           </div>
 
@@ -962,6 +1214,10 @@ ${JSON.stringify(commandPayload, null, 2)}
 
       if (action === "duplicate") duplicateTechnicalTask(button.getAttribute("data-source-id"));
       if (action === "add_subtask") addSubtask(button.getAttribute("data-parent-id"));
+      if (action === "move_up") moveEditorRow(button.closest("[data-admin-row='true']"), -1);
+      if (action === "move_down") moveEditorRow(button.closest("[data-admin-row='true']"), 1);
+      if (action === "make_subtask") markMakeSubtask(button.closest("[data-admin-row='true']"));
+      if (action === "promote_subtask") markPromoteSubtask(button.closest("[data-admin-row='true']"));
 
       if (action === "archive_existing") {
         const row = button.closest("[data-admin-row='true']");
@@ -983,6 +1239,28 @@ ${JSON.stringify(commandPayload, null, 2)}
         button.closest("[data-admin-row='true']").remove();
         collectChanges();
       }
+    });
+
+    shell.querySelectorAll("[data-proposal-command]").forEach(button => {
+      button.addEventListener("click", async () => {
+        const type = button.getAttribute("data-proposal-command");
+        const active = isProposalActive(data);
+        const message = document.getElementById("proposalReviewMessage");
+
+        if (!active) {
+          if (message) message.innerHTML = `<div class="error">No active proposal is waiting for review.</div>`;
+          return;
+        }
+
+        const label = type === "approve_proposal" ? "approve" : "reject";
+        const ok = window.confirm(`Are you sure you want to ${label} this proposal?`);
+        if (!ok) return;
+
+        if (window.AdminActions && window.AdminActions.sendTextCommand) {
+          await window.AdminActions.sendTextCommand(type, `Proposal Review action: ${type}`);
+          if (message) message.innerHTML = `<div class="success">${label[0].toUpperCase() + label.slice(1)} proposal command queued. Wait for processing, then reload the latest snapshot.</div>`;
+        }
+      });
     });
 
     document.getElementById("addTechnicalTaskButton").addEventListener("click", addTechnicalTask);

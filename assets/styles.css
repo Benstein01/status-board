@@ -908,3 +908,144 @@ textarea:focus-visible {
     grid-column: span 1;
   }
 }
+
+.convert-preview {
+  background: #f5f3ff;
+}
+
+.convert-preview td:first-child::after {
+  content: " conversion pending";
+  display: block;
+  margin-top: 4px;
+  color: #6d28d9;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.proposal-review-card {
+  border-color: #dbeafe;
+}
+
+.proposal-actions {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.proposal-empty-card .empty-state {
+  margin-top: 14px;
+}
+
+.proposal-empty-card .empty-state h3 {
+  margin: 0 0 6px;
+}
+
+.proposal-empty-card .empty-state p {
+  margin: 0;
+  color: #6b7280;
+}
+
+.proposal-block {
+  margin-top: 16px;
+}
+
+.proposal-block h3 {
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+
+.proposal-change-list {
+  display: grid;
+  gap: 10px;
+}
+
+.proposal-change-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 12px;
+  background: #f9fafb;
+}
+
+.proposal-change-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.proposal-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.proposal-detail-grid .label {
+  display: block;
+  font-size: 11px;
+  margin-bottom: 2px;
+}
+
+.proposal-details {
+  margin: 10px 0 0;
+}
+
+.proposal-question-list {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.pill.warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+#proposalReviewMessage {
+  margin-top: 10px;
+}
+
+@media (max-width: 850px) {
+  .proposal-detail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .proposal-change-head {
+    flex-direction: column;
+  }
+
+  .proposal-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* One-button workflow / advanced actions patch */
+.advanced-actions {
+  margin: 8px 0 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #f9fafb;
+  padding: 10px 12px;
+}
+
+.advanced-actions summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: #374151;
+  user-select: none;
+}
+
+.advanced-actions[open] summary {
+  margin-bottom: 8px;
+}
+
+.advanced-action-row {
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+#submitDraftChangesButton {
+  font-weight: 800;
+}
+

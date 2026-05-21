@@ -71,7 +71,7 @@ window.Api = (function () {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       let payload = null;
       try {
-        payload = await jsonp({ action: "load", token: token });
+        payload = await jsonp({ action: "command_status", token: token, command_id: commandId });
       } catch (error) {
         onStatus("waiting", { attempt, message: error.message });
         await sleep(intervalMs);
@@ -84,7 +84,7 @@ window.Api = (function () {
         continue;
       }
 
-      const status = readCommandStatusFromPayload(payload, commandId);
+      const status = payload.status || readCommandStatusFromPayload(payload, commandId);
       if (status === "processed" || status === "failed") return { status, payload };
 
       onStatus(status === "inbox" ? "inbox" : "waiting", { attempt, payload });
